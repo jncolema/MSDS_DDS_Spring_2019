@@ -1,0 +1,29 @@
+---
+title: "Breakout3"
+author: "Bivin"
+date: "1/24/2019"
+output: html_document
+---
+
+#Breakout 3
+
+#Wrangle the Data
+```{r}
+HorseHigh = mtcars[which(mtcars$hp > 200),]
+HorseLow = mtcars[which(mtcars$hp < 200),]
+```
+
+#Check the assumptions
+```{r}
+par(mfrow = c(1,2))
+hist(HorseHigh$mpg)
+hist(HorseLow$mpg)
+```
+
+#Now assume that you are told that the data come from normal distributions
+```{r}
+t.test(HorseHigh$mpg,HorseLow$mpg)
+```
+
+# Write the step 6 conclusion:
+There is overwhelming evdence to suggest...
