@@ -1,5 +1,7 @@
 # MSDS_DDS_Spring_2019
+
 Author: Jasmine Coleman
+
 Email: jasminecoleman@mail.smu.edu
 
 This repository was created to store files, presentations, homeworks, and interesting articles
