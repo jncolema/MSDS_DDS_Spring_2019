@@ -1,5 +1,6 @@
 # MSDS_DDS_Spring_2019
 Author: Jasmine Coleman
+
 This repository was created to store files, presentations, homeworks, and interesting articles
 that pertain to the MSDS Doing Data Science Spring 2019 course.
 
