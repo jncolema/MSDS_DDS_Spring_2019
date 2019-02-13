@@ -1,0 +1,104 @@
+---
+title: "Live Session 5"
+author: "Jasmine Coleman"
+date: "February 12, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##GitHub Location:
+https://github.com/jncolema/MSDS_DDS_Spring_2019/tree/master/Homework/Unit%205
+Codebook can be found here as well.
+
+Files and packages used in this assignment:
+```{r download}
+library(downloader)
+library(dplyr)
+# download("https://raw.githubusercontent.com/BivinSadler/MSDS-6306-Doing-Data-Science/master/Unit%205/yob2016.txt", destfile="yob2016.txt")
+# download("https://raw.githubusercontent.com/BivinSadler/MSDS-6306-Doing-Data-Science/master/Unit%205/yob2015.txt", destfile="yob2015.txt")
+# list.files()
+```
+
+##1. Data Munging  
+###a. Importing yob2016.txt and Creating Dataframe
+```{r import 2016}
+df <- read.delim2("yob2016.txt", header = FALSE, sep = ";")
+names(df) <- c("First_Name", "Gender", "Amount_of_Children")
+head(df)
+```
+
+###b. df Structure
+```{r df Structure}
+head(df)
+dim(df)
+summary(df)
+str(df)
+```
+
+###c. Finding Misspelled Entry
+```{r Find Error}
+which(grepl("yyy+", df$First_Name))
+df[212,,]
+```
+
+###d. Removing Entry
+```{r Remove Error}
+y2016 <- df[-212,,]
+```
+
+
+##2. Data Merging  
+###a. Importing yob2015.txt and Creating Dataframe
+```{r Import 2015}
+y2015 <- read.delim2("yob2015.txt", header = FALSE, sep = ",")
+head(y2015)
+dim(y2015)
+
+names(y2015) <- c("First_Name", "Gender", "Amount_of_Children")
+head(y2015)
+```
+
+###b. Displaying Last 10 Rows of Dataframe
+```{r Last 2015}
+tail(y2015,10)
+```
+####The last 10 rows are all for names stating with Z. What's interesting about them is that they were all only used 5 times and I've never heard of any of them.
+
+###c. Merging y2016 and 72015
+```{r Merge}
+final <- merge(y2016, y2015, by = "First_Name")
+head(final)
+```
+
+##3. Data Summary
+###a. Creating Total Column
+```{r Create Total}
+final$Total <- final$Amount_of_Children.x+final$Amount_of_Children.y
+head(final)
+```
+
+###b. Sorting by Total
+```{r Sort Total}
+head(final[order(-final$Total),],10)
+```
+
+###c. Omitting Boy Names
+```{r Girls Only}
+finalFemale <- filter(final,Gender.x=='F' & Gender.y=='F')
+head(finalFemale)
+
+Top10Female <- head(finalFemale[order(-finalFemale$Total),],10)
+Top10Female$First_Name
+```
+
+###d. Writing Top 10 Girl Names to CSV File
+```{r CSV}
+# Top10Female$First_Name
+# write.table(Top10Female$First_Name, file = "Top 10 Girl Names in 2015 and 2016.csv", sep = "," ,row.names=FALSE, col.names=FALSE)
+```
+
+
+
+
