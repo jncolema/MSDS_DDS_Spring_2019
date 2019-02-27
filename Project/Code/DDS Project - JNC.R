@@ -117,3 +117,9 @@ maxABV <- aggregate(as.numeric(as.character(Beer_and_Brewery$ABV))~State,data = 
 head(maxIBUs[order(-maxIBUs$IBU),],5)
 head(maxABV[order(-maxABV$`as.numeric(as.character(Beer_and_Brewery$ABV))`),],5)
   #as.numeric(as.character(Beer_and_Brewery$ABV))
+
+#scatter plot to show the relationship between the bitterness of the beer and its alcoholic content
+ggplot(Beer_and_Brewery, aes(x=ABV, y=IBU)) + geom_point(color="blue", size=1.5, alpha=0.3, pch=16)+ theme_bw(base_size=16) + geom_smooth(method = "lm", se = T, color="red")
+
+
+
