@@ -1,15 +1,15 @@
 getwd()
 setwd("C:\\Users\\Jazzy\\OneDrive\\Documents\\SMU\\Spring '19\\Doing Data Science\\GitHub\\MSDS_DDS_Spring_2019\\Project\\Code")
 
-# library(git2r)
 
 
-
+#Downloading the raw beer and brewery data
 library(downloader)
 download("https://raw.githubusercontent.com/BivinSadler/MSDS-6306-Doing-Data-Science/master/Unit%207/Breweries.csv", destfile="Breweries.csv")
 download("https://raw.githubusercontent.com/BivinSadler/MSDS-6306-Doing-Data-Science/master/Unit%207/Beers.csv", destfile="Beers.csv")
 list.files()
 
+#Importing the downloaded data
 Breweries <- read.csv2("Breweries.csv", header = TRUE, sep = ",")
 dim(Breweries)
 head(Breweries)
@@ -22,38 +22,117 @@ head(Beer)
 str(Beer)
 class(Beer)
 
-library(dpylr)
+library(dplyr)
 library(ggplot2)
 
 #How many breweries are in each state?
 
-count(Breweries$State)
+    #count(Breweries$State)
+#counting occurrences of state in dataset
 BrewbyState <- Breweries %>% group_by(State) %>% count(State)
 Breweries %>% group_by(State) %>% summarize(no_rows = length(State))
-#remove spaces
+#remove spaces from state variable
 BrewbyState$State <- gsub(" ", "", BrewbyState$State, fixed = TRUE)
-BrewbyState <- data.frame(BrewbyState) 
+#Calculating % of Total
+BrewbyState$Percentage <- round((BrewbyState$n/sum(BrewbyState$n))*100,2)
+#putting results into a dataframe
+BrewbyState <- data.frame(BrewbyState)
+names(BrewbyState)[2] <- "Count"
 str(BrewbyState)
+BrewbyState
+###Top 10 Brewery States###
+TopBrewStates <- head(BrewbyState[order(-BrewbyState$Percentage),],10)
+#Reordering
+BrewbyState <- BrewbyState[order(-BrewbyState$Percentage),]
+#Total percentage for top 10 brewery states
+sum(head(BrewbyState$Percentage,10))
 
-#plot count
-ggplot(BrewbyState, aes(y=BrewbyState$n , x=reorder(BrewbyState$State, BrewbyState$n))) + geom_col() + coord_flip() +
-  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=6)) +
-  labs(title = "Breweries Count by Stae", y = "Count", x = "State")
+#exporting dataframe to csv
+write.csv(BrewbyState, file = "BreweryCount.csv")
+
+
+#plot brewery count by state in descending order
+ggplot(BrewbyState, aes(y=BrewbyState$Count , x=reorder(BrewbyState$State, BrewbyState$Count), fill=Count)) + geom_col() + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=6),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_line(colour = "black")) +
+  labs(title = "Brewery Count by State", y = "Count", x = "State") +
+  scale_fill_gradientn(colours = rainbow(3)) +
+  scale_y_continuous(expand = c(0, 0))
+
+#plot brewery percentages by state
+ggplot(BrewbyState, aes(y=BrewbyState$Percentage , x=reorder(BrewbyState$State, BrewbyState$Percentage), fill=Percentage)) + geom_col() + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=6),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_line(colour = "black")) +
+  labs(title = "Percentage of Breweries in Each State", y = "Percentage", x = "State") +
+  scale_fill_gradientn(colours = rainbow(3)) +
+  scale_y_continuous(expand = c(0, 0))
 
 summary(BrewbyState)
-#top x states vs lowest ... by %
+
 
 #Merging Datasets
-
 Beer_and_Brewery <-merge(Beer,Breweries, by.x = "Brewery_id", by.y = "Brew_ID", all.x = TRUE)
+str(Beer_and_Brewery)
+#Modifying variable types and updating column names
 Beer_and_Brewery$State <- gsub(" ", "", Beer_and_Brewery$State, fixed = TRUE)
 Beer_and_Brewery$ABV <- as.numeric(as.character(Beer_and_Brewery$ABV))
-# Beer_and_Brewery$Name.x change name and update all factor variables
+Beer_and_Brewery$Name.x <- as.character(Beer_and_Brewery$Name.x)
+Beer_and_Brewery$Style <- as.character(Beer_and_Brewery$Style)
+Beer_and_Brewery$Name.y <- as.character(Beer_and_Brewery$Name.y)
+Beer_and_Brewery$City <- as.character(Beer_and_Brewery$City)
+names(Beer_and_Brewery)[2] <- "Beer"
+names(Beer_and_Brewery)[8] <- "Brewery"
+str(Beer_and_Brewery)
 
-union(head(Beer_and_Brewery,6),tail(Beer_and_Brewery,6))
+#Beers per Brewery
+summary(Beer_and_Brewery)
+BeerbyState <- Beer_and_Brewery %>% group_by(State) %>% summarize(no_rows = length(State))
+sum(BeerbyState$no_rows)
+BeerbyState$Percentage <- round((BeerbyState$no_rows/sum(BeerbyState$no_rows))*100,2)
+names(BeerbyState)[2] <- "BeersBrewed" 
+BeerbyState <-data.frame(BeerbyState)
+BeerbyState
+
+#plot beer percentages by state
+ggplot(BeerbyState, aes(y=BeerbyState$Percentage , x=reorder(BeerbyState$State, BeerbyState$Percentage), fill=Percentage)) + geom_col() + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=6),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_line(colour = "black")) +
+  labs(title = "Percentage of Beers Brewed in Each State", y = "Percentage", x = "State") +
+  scale_fill_gradientn(colours = rainbow(3)) +
+  scale_y_continuous(expand = c(0, 0))
+
+###Top 10 Beer States###
+TopBeerStates<- head(BeerbyState[order(-BeerbyState$Percentage),],10)
+#Reordering
+BeerbyState <- BeerbyState[order(-BeerbyState$Percentage),]
+#Total percentage for top 10 brewery states
+sum(head(BrewbyState$Percentage,10))
+
+#plot TopBrewStates
+ggplot(TopBrewStates, aes(y=TopBrewStates$Count , x=reorder(TopBrewStates$State, TopBrewStates$Count), fill=-Count)) + geom_col() + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_blank(), axis.ticks.x = element_blank(), legend.position="none") +
+  labs(title = "Top 10 Brewery States", y = "Total Breweries in Each State", x = "State") +
+  scale_y_continuous(expand = c(0, 0),limits = c(0, 50)) +
+  geom_text(aes(label = Count), hjust = -.5, size=3) #+ theme(legend.position="bottom")
+
+#plot TopBeerStates
+ggplot(TopBeerStates, aes(y=TopBeerStates$BeersBrewed , x=reorder(TopBeerStates$State, TopBeerStates$BeersBrewed), fill=-BeersBrewed)) + geom_col() + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_blank(), axis.ticks.x = element_blank(), legend.position="none") +
+  labs(title = "Top 10 Beer Producing States", y = "Total Beers Produced", x = "State") + 
+  scale_y_continuous(expand = c(0, 0),limits = c(0, 300)) +
+  geom_text(aes(label = BeersBrewed), hjust = -.5, size=3) #+ theme(legend.position="bottom")
+
+#Plotting First 6 and Last 6 Records
 head(Beer_and_Brewery,6)
 tail(Beer_and_Brewery,6)
-#The last 10 rows are all for names stating
+DataPreview <- data.frame(union(head(Beer_and_Brewery,6),tail(Beer_and_Brewery,6)))
+DataPreview
+  # library(gridExtra)
+  # library(grid)
+  # grid.newpage()
+  # grid.table(DataPreview)
 
 #checking row count
 dim(merge(Beer,Breweries, by.x = "Brewery_id", by.y = "Brew_ID"))
@@ -85,13 +164,16 @@ paste0(medianIBU$State,medianABV$State, sep = "")
 Beer_and_Brewery[which(Beer_and_Brewery$State == "SD"),]
   #merging both median vectors
 medianstats <- merge(medianIBU, medianABV, by = "State", all = TRUE)
+medianstats <- data.frame(medianstats)
+names(medianstats)[3] <- "ABV"
+medianstats$ABV_adj <- medianstats$ABV*100
 dim(medianstats)
 str(medianstats)
 medianstats
   #changing to long form to create side by side barplot
 library(reshape2)
-medianstats_long<-melt(medianstats,id.vars="State", measure.vars = c("IBU","as.numeric(as.character(Beer_and_Brewery$ABV))"), value.name = "Medians", na.rm = FALSE)
-medianstats_long$variable <- ifelse(medianstats_long$variable=="as.numeric(as.character(Beer_and_Brewery$ABV))", "ABV","IBU")
+medianstats_long<-melt(medianstats,id.vars="State", measure.vars = c("IBU","ABV_adj"), value.name = "Medians", na.rm = FALSE)
+medianstats_long$variable <- ifelse(medianstats_long$variable=="ABV", "ABV","IBU")
   #creaing side by side barplot
 ggplot(medianstats_long,aes(y=medianstats_long$Medians, x=reorder(medianstats_long$State, medianstats_long$Medians), fill=factor(variable)))+
   geom_col(position="dodge", na.rm = FALSE) + coord_flip() +
