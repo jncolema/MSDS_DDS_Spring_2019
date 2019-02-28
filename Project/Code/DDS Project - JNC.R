@@ -1,6 +1,9 @@
 getwd()
-setwd("C:\\Users\\Jazzy\\OneDrive\\Documents\\SMU\\Spring '19\\Doing Data Science\\GitHub\\MSDS_DDS_Spring_2019\\Project\\Code")
 
+#home repo
+# setwd("C:\\Users\\Jazzy\\OneDrive\\Documents\\SMU\\Spring '19\\Doing Data Science\\GitHub\\MSDS_DDS_Spring_2019\\Project\\Code")
+#work repo
+#setwd("C:/Users/jcolem230/OneDrive - Comcast/Work Keep/Me/SMU/DDS/MSDS_DDS_Spring_2019/Project/Code")
 
 
 #Downloading the raw beer and brewery data
@@ -22,6 +25,8 @@ head(Beer)
 str(Beer)
 class(Beer)
 
+# install.packages("dplyr")
+# install.packages("ggplot2")
 library(dplyr)
 library(ggplot2)
 
@@ -103,6 +108,9 @@ ggplot(BeerbyState, aes(y=BeerbyState$Percentage , x=reorder(BeerbyState$State, 
 
 ###Top 10 Beer States###
 TopBeerStates<- head(BeerbyState[order(-BeerbyState$Percentage),],10)
+TopBeerStateNames <- TopBeerStates[1:10,1]
+
+
 #Reordering
 BeerbyState <- BeerbyState[order(-BeerbyState$Percentage),]
 #Total percentage for top 10 brewery states
@@ -113,7 +121,7 @@ ggplot(TopBrewStates, aes(y=TopBrewStates$Count , x=reorder(TopBrewStates$State,
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_blank(),
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_blank(), axis.ticks.x = element_blank(), legend.position="none") +
   labs(title = "Top 10 Brewery States", y = "Total Breweries in Each State", x = "State") +
-  scale_y_continuous(expand = c(0, 0),limits = c(0, 50)) +
+  scale_y_continuous(expand = c(0, 0),limits = c(0, 50), position = "right") +
   geom_text(aes(label = Count), hjust = -.5, size=3) #+ theme(legend.position="bottom")
 
 #plot TopBeerStates
@@ -121,7 +129,7 @@ ggplot(TopBeerStates, aes(y=TopBeerStates$BeersBrewed , x=reorder(TopBeerStates$
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_blank(),
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_blank(), axis.ticks.x = element_blank(), legend.position="none") +
   labs(title = "Top 10 Beer Producing States", y = "Total Beers Produced", x = "State") + 
-  scale_y_continuous(expand = c(0, 0),limits = c(0, 300)) +
+  scale_y_continuous(expand = c(0, 0),limits = c(0, 300), position = "right") +
   geom_text(aes(label = BeersBrewed), hjust = -.5, size=3) #+ theme(legend.position="bottom")
 
 #Plotting First 6 and Last 6 Records
@@ -166,42 +174,81 @@ Beer_and_Brewery[which(Beer_and_Brewery$State == "SD"),]
 medianstats <- merge(medianIBU, medianABV, by = "State", all = TRUE)
 medianstats <- data.frame(medianstats)
 names(medianstats)[3] <- "ABV"
-medianstats$ABV_adj <- medianstats$ABV*100
+#medianstats$ABV_adj <- medianstats$ABV*100
 dim(medianstats)
 str(medianstats)
 medianstats
   #changing to long form to create side by side barplot
-library(reshape2)
-medianstats_long<-melt(medianstats,id.vars="State", measure.vars = c("IBU","ABV_adj"), value.name = "Medians", na.rm = FALSE)
-medianstats_long$variable <- ifelse(medianstats_long$variable=="ABV", "ABV","IBU")
-  #creaing side by side barplot
-ggplot(medianstats_long,aes(y=medianstats_long$Medians, x=reorder(medianstats_long$State, medianstats_long$Medians), fill=factor(variable)))+
+  # library(reshape2)
+  # medianstats_long<-melt(medianstats,id.vars="State", measure.vars = c("IBU","ABV_adj"), value.name = "Medians", na.rm = FALSE)
+  # medianstats_long$variable <- ifelse(medianstats_long$variable=="ABV", "ABV","IBU")
+  #   #creaing side by side barplot
+  # ggplot(medianstats_long,aes(y=medianstats_long$Medians, x=reorder(medianstats_long$State, medianstats_long$Medians), fill=factor(variable)))+
+  #   geom_col(position="dodge", na.rm = FALSE) + coord_flip() +
+  #   theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=6)) +
+  #   labs(title = "Median ABV and IBU by State", x = "State", y = "Median Values", fill = "Metric:")
+  # #update with dual axis
+
+#idividual bar charts for ABV and IBU
+ggplot(medianstats, aes(y=medianstats$IBU, x=reorder(medianstats$State, medianstats$IBU), fill=factor(IBU)))+
   geom_col(position="dodge", na.rm = FALSE) + coord_flip() +
-  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=6)) +
-  labs(title = "Median ABV and IBU by State", x = "State", y = "Median Values", fill = "Metric:")
-#update with dual axis
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_text(size=8, face = "bold"), axis.line.x = element_line(colour = "black"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), legend.position="none") +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(title = "Median IBU by State", x = "State", y = "Median Values")
+
+ggplot(medianstats,aes(y=medianstats$ABV, x=reorder(medianstats$State, medianstats$ABV), fill=factor(ABV)))+
+  geom_col(position="dodge", na.rm = FALSE) + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_text(size=8, face = "bold"), axis.line.x = element_line(colour = "black"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), legend.position="none") +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(title = "Median ABV by State", x = "State", y = "Median Values")
+
+#Plot of top 10 Beer States Media Values
+TopBeerMedians <- subset(medianstats, State %in% TopBeerStateNames)
+
+ABVPlot<- ggplot(TopBeerMedians,aes(y=TopBeerMedians$ABV, x=reorder(TopBeerMedians$State, TopBeerMedians$ABV), fill=factor(ABV)))+
+  geom_col(position="dodge", na.rm = FALSE) + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_blank(), axis.line.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), legend.position="none") +
+  scale_y_continuous(expand = c(0, 0),limits = c(0, .067), position = "right") +
+  labs(title = "Median ABV for Top 10 Beer Producing States", x = "State", y = "Median Values") +
+  geom_text(aes(label = ABV), hjust = -.5, size=3)
+
+IBUPlot <- ggplot(TopBeerMedians, aes(y=TopBeerMedians$IBU, x=reorder(TopBeerMedians$State, TopBeerMedians$IBU), fill=factor(IBU)))+
+  geom_col(position="dodge", na.rm = FALSE) + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_blank(), axis.line.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), legend.position="none") +
+  scale_y_continuous(expand = c(0, 0),limits = c(0, 45), position = "right") +
+  labs(title = "Median IBU for Top 10 Beer Producing States", x = "State", y = "Median Values") +
+  geom_text(aes(label = IBU), hjust = -.5, size=3)
 
 #maxIBU
+summary(medianstats)
 
+#sumary statistics
 mysummary<-function(x){
   result<-c(length(x),mean(x),sd(x),sd(x)/length(x),min(x),max(x),IQR(x))
   names(result)<-c("N","Mean","SD","SE","Min","Max","IQR")
   return(result)
 }
-sumstats <-aggregate(as.numeric(as.character(Beer_and_Brewery$ABV))~State,data=Beer_and_Brewery,mysummary)
+sumstats <-aggregate(Beer_and_Brewery$ABV~State,data=Beer_and_Brewery,mysummary)
 sumstats
-#get sum stats in general not jsut by each state
+
 summary(Beer_and_Brewery$ABV)
+summary(Beer_and_Brewery$IBU)
 
-maxIBUs <- as.numeric(as.character(Beer_and_Brewery$ABV))
-maxABV <- aggregate(as.numeric(as.character(Beer_and_Brewery$ABV))~State,data = Beer_and_Brewery,max)
+#State with highest ABV and IBU values
+maxIBUs <- aggregate(Beer_and_Brewery$IBU~State,data = Beer_and_Brewery,max)
+maxABV <- aggregate(Beer_and_Brewery$ABV~State,data = Beer_and_Brewery,max)
 
-head(maxIBUs[order(-maxIBUs$IBU),],5)
-head(maxABV[order(-maxABV$`as.numeric(as.character(Beer_and_Brewery$ABV))`),],5)
-  #as.numeric(as.character(Beer_and_Brewery$ABV))
+head(maxIBUs[order(-maxIBUs$`Beer_and_Brewery$IBU`),],5)
+head(maxABV[order(-maxABV$`Beer_and_Brewery$ABV`),],5)
+
 
 #scatter plot to show the relationship between the bitterness of the beer and its alcoholic content
-ggplot(Beer_and_Brewery, aes(x=ABV, y=IBU)) + geom_point(color="blue", size=1.5, alpha=0.3, pch=16)+ theme_bw(base_size=16) + geom_smooth(method = "lm", se = T, color="red")
+ggplot(Beer_and_Brewery, aes(x=ABV, y=IBU)) + geom_point(color="blue", size=1.5, alpha=0.3, pch=16) +
+  theme_bw(base_size=16) + geom_smooth(method = "lm", se = T, color="red")
 
 
 
