@@ -1,22 +1,28 @@
 ---
-title: "DDS Project 1"
+title: "Budweiser Competitive Analysis"
 author: "Jasmine Coleman"
 date: "February 28, 2019"
-output: html_document
+output:
+  html_document:
+    keep_md: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+#Purpose
+####This code explores interesting findings on the US craft brewery market to help provide insight to Budweiser executives regarding future beer production.  
 
-#Downloading the raw beer and brewery data
+#Gathering the Data  
+##Downloading the raw beer and brewery data  
 ```{r downloading}
 # library(downloader)
 # download("https://raw.githubusercontent.com/BivinSadler/MSDS-6306-Doing-Data-Science/master/Unit%207/Breweries.csv", destfile="Breweries.csv")
 # download("https://raw.githubusercontent.com/BivinSadler/MSDS-6306-Doing-Data-Science/master/Unit%207/Beers.csv", destfile="Beers.csv")
 
 ```
-#Importing the downloaded data
+  
+##Importing the downloaded data
 ```{r importing}
 Breweries <- read.csv2("Breweries.csv", header = TRUE, sep = ",")
 dim(Breweries)
@@ -30,36 +36,48 @@ head(Beer)
 str(Beer)
 class(Beer)
 ```
-
-#How many breweries are in each state?
+  
+#Analyzing the Data  
+##How many breweries are in each state?
 ```{r BrewCount}
 library(dplyr)
 library(ggplot2)
-    #count(Breweries$State)
-#counting occurrences of state in dataset
+
+#Counting occurrences for each state in dataset
 BrewbyState <- Breweries %>% group_by(State) %>% count(State)
-Breweries %>% group_by(State) %>% summarize(no_rows = length(State))
-#remove spaces from state variable
+
+#Remove spaces from state variable
 BrewbyState$State <- gsub(" ", "", BrewbyState$State, fixed = TRUE)
-#Calculating % of Total
+
+#Calculating % of total breweries in each state
 BrewbyState$Percentage <- round((BrewbyState$n/sum(BrewbyState$n))*100,2)
-#putting results into a dataframe
+
+#Putting results into a dataframe
 BrewbyState <- data.frame(BrewbyState)
 names(BrewbyState)[2] <- "Count"
 str(BrewbyState)
-BrewbyState
+summary(BrewbyState)
+
 ###Top 10 Brewery States###
 TopBrewStates <- head(BrewbyState[order(-BrewbyState$Percentage),],10)
-#Reordering
+
+#Sorting table in descending order by percentage of total breweries
 BrewbyState <- BrewbyState[order(-BrewbyState$Percentage),]
-#Total percentage for top 10 brewery states
+#Precentage of breweries located in 10 states with the most breweries
 sum(head(BrewbyState$Percentage,10))
 
-#exporting dataframe to csv for Tableau mapping
-# write.csv(BrewbyState, file = "BreweryCount.csv")
+#exporting dataframe to csv file for Tableau heatmapping
+#write.csv(BrewbyState, file = "BreweryCount.csv")
+```
 
+###This table displays how many breweries are in each state:
+```{r Brew Table}
+BrewbyState
+```
 
-#plot brewery count by state in descending order
+###Plots visualizing brewery count by state:
+```{r Brew Plots}
+#Plots brewery count by state in descending order
 ggplot(BrewbyState, aes(y=BrewbyState$Count , x=reorder(BrewbyState$State, BrewbyState$Count), fill=Count)) + geom_col() + coord_flip() +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=6),
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_line(colour = "black")) +
@@ -67,18 +85,16 @@ ggplot(BrewbyState, aes(y=BrewbyState$Count , x=reorder(BrewbyState$State, Brewb
   scale_fill_gradientn(colours = rainbow(3)) +
   scale_y_continuous(expand = c(0, 0))
 
-#plot brewery percentages by state
+#Plot brewery percentages by state
 ggplot(BrewbyState, aes(y=BrewbyState$Percentage , x=reorder(BrewbyState$State, BrewbyState$Percentage), fill=Percentage)) + geom_col() + coord_flip() +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=6),
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_line(colour = "black")) +
   labs(title = "Percentage of Breweries in Each State", y = "Percentage", x = "State") +
   scale_fill_gradientn(colours = rainbow(3)) +
   scale_y_continuous(expand = c(0, 0))
-
-summary(BrewbyState)
 ```
 
-#Merging Datasets
+##Merging Beer and Brewery Datasets
 ```{r Merging}
 Beer_and_Brewery <-merge(Beer,Breweries, by.x = "Brewery_id", by.y = "Brew_ID", all.x = TRUE)
 str(Beer_and_Brewery)
@@ -94,17 +110,31 @@ names(Beer_and_Brewery)[8] <- "Brewery"
 str(Beer_and_Brewery)
 ```
 
-#Beers per Brewery
-```{r BeerCount}
-summary(Beer_and_Brewery)
+###This is a sample of the merged dataset:
+```{r Data Sample}
+#Plotting First 6 and Last 6 Records
+
+##First 6 rows of data
+head(Beer_and_Brewery,6)
+
+##Last 6 rows of data
+tail(Beer_and_Brewery,6)
+
+##Plotting First and Last 6 Rows of data
+DataPreview <- data.frame(union(head(Beer_and_Brewery,6),tail(Beer_and_Brewery,6)))
+DataPreview
+```
+
+###Plots visualizing beer count by state:
+```{r Beer Count}
+#Producing Table of Beers per State
 BeerbyState <- Beer_and_Brewery %>% group_by(State) %>% summarize(no_rows = length(State))
-sum(BeerbyState$no_rows)
 BeerbyState$Percentage <- round((BeerbyState$no_rows/sum(BeerbyState$no_rows))*100,2)
 names(BeerbyState)[2] <- "BeersBrewed" 
 BeerbyState <-data.frame(BeerbyState)
 BeerbyState
 
-#plot beer percentages by state
+#Plotting beer production percentages by state
 ggplot(BeerbyState, aes(y=BeerbyState$Percentage , x=reorder(BeerbyState$State, BeerbyState$Percentage), fill=Percentage)) + geom_col() + coord_flip() +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=6),
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_line(colour = "black")) +
@@ -114,32 +144,134 @@ ggplot(BeerbyState, aes(y=BeerbyState$Percentage , x=reorder(BeerbyState$State, 
 
 ###Top 10 Beer States###
 TopBeerStates<- head(BeerbyState[order(-BeerbyState$Percentage),],10)
-#Reordering
+TopBeerStateNames <- TopBeerStates[1:10,1]
+
+#Sorting Beer Total by State Table
 BeerbyState <- BeerbyState[order(-BeerbyState$Percentage),]
 #Total percentage for top 10 brewery states
 sum(head(BrewbyState$Percentage,10))
-
-#plot TopBrewStates by percentage
+```
+####Approximately 51% of all craft beer is produced in only 10 states.
+```{r Top10 Plots}
+#Plotting TopBrewStates
 ggplot(TopBrewStates, aes(y=TopBrewStates$Count , x=reorder(TopBrewStates$State, TopBrewStates$Count), fill=-Count)) + geom_col() + coord_flip() +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_blank(),
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_blank(), axis.ticks.x = element_blank(), legend.position="none") +
   labs(title = "Top 10 Brewery States", y = "Total Breweries in Each State", x = "State") +
-  scale_y_continuous(expand = c(0, 0),limits = c(0, 50)) +
+  scale_y_continuous(expand = c(0, 0),limits = c(0, 50), position = "right") +
   geom_text(aes(label = Count), hjust = -.5, size=3) #+ theme(legend.position="bottom")
 
-#plot TopBeerStates by percentage
+#Plotting TopBeerStates
 ggplot(TopBeerStates, aes(y=TopBeerStates$BeersBrewed , x=reorder(TopBeerStates$State, TopBeerStates$BeersBrewed), fill=-BeersBrewed)) + geom_col() + coord_flip() +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_blank(),
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line.x = element_blank(), axis.ticks.x = element_blank(), legend.position="none") +
   labs(title = "Top 10 Beer Producing States", y = "Total Beers Produced", x = "State") + 
-  scale_y_continuous(expand = c(0, 0),limits = c(0, 300)) +
+  scale_y_continuous(expand = c(0, 0),limits = c(0, 300), position = "right") +
   geom_text(aes(label = BeersBrewed), hjust = -.5, size=3) #+ theme(legend.position="bottom")
 ```
 
-```{r Union}
-head(Beer_and_Brewery,6)
-tail(Beer_and_Brewery,6)
-DataPreview <- data.frame(union(head(Beer_and_Brewery,6),tail(Beer_and_Brewery,6)))
-DataPreview
-
+##Idenifying Any Missing Values
+```{r Finding N/As}
+#Counting N/As by column
+apply(is.na(Beer_and_Brewery), 2, sum)
+#Calculaing Percentage of N/As
+NAs <- colSums(is.na(Beer_and_Brewery))
+PercentNA <- (NAs/2410)*100
+NAs
+PercentNA
 ```
+####There are 62 missing values for ABV (2.6%) and 1005 missing values for IBU (41.7%).
+
+##Median Alcohol Content and Int'l Bitterness Units by State
+```{r Median Values}
+#Calculating Median Values
+medianIBU <- aggregate(IBU~State,data=Beer_and_Brewery,median)
+medianABV <- aggregate(as.numeric(as.character(Beer_and_Brewery$ABV))~State,data=Beer_and_Brewery,median)
+
+#Merging both median vectors into one dataframe
+medianstats <- merge(medianIBU, medianABV, by = "State", all = TRUE)
+medianstats <- data.frame(medianstats)
+names(medianstats)[3] <- "ABV"
+dim(medianstats)
+str(medianstats)
+medianstats
+```
+####There is no IBU data available for craft beers produced in South Dakota.
+```{r Median Barcharts}
+#Bar Chart for Median IBU by State
+ggplot(medianstats, aes(y=medianstats$IBU, x=reorder(medianstats$State, medianstats$IBU), fill=factor(IBU)))+
+  geom_col(position="dodge", na.rm = FALSE) + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_text(size=8, face = "bold"), axis.line.x = element_line(colour = "black"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), legend.position="none") +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(title = "Median IBU by State", x = "State", y = "Median Values")
+
+#Bar Chart for Median ABV by State
+ggplot(medianstats,aes(y=medianstats$ABV, x=reorder(medianstats$State, medianstats$ABV), fill=factor(ABV)))+
+  geom_col(position="dodge", na.rm = FALSE) + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_text(size=8, face = "bold"), axis.line.x = element_line(colour = "black"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), legend.position="none") +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(title = "Median ABV by State", x = "State", y = "Median Values")
+```
+
+####Plots of Top 10 Beer States' Median Values
+```{r Top Median Plots}
+#Subsetting data for top 10 states producing the most beer
+TopBeerMedians <- subset(medianstats, State %in% TopBeerStateNames)
+
+ABVPlot<- ggplot(TopBeerMedians,aes(y=TopBeerMedians$ABV, x=reorder(TopBeerMedians$State, TopBeerMedians$ABV), fill=factor(ABV)))+
+  geom_col(position="dodge", na.rm = FALSE) + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_blank(), axis.line.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), legend.position="none") +
+  scale_y_continuous(expand = c(0, 0),limits = c(0, .067), position = "right") +
+  labs(title = "Median ABV for Top 10 Beer Producing States", x = "State", y = "Median Values") +
+  geom_text(aes(label = ABV), hjust = -.5, size=3)
+
+IBUPlot <- ggplot(TopBeerMedians, aes(y=TopBeerMedians$IBU, x=reorder(TopBeerMedians$State, TopBeerMedians$IBU), fill=factor(IBU)))+
+  geom_col(position="dodge", na.rm = FALSE) + coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"), axis.title = element_text(size = 9, face = "bold"), axis.text.y = element_text(size=8, face = "bold"), axis.text.x = element_blank(), axis.line.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), legend.position="none") +
+  scale_y_continuous(expand = c(0, 0),limits = c(0, 45), position = "right") +
+  labs(title = "Median IBU for Top 10 Beer Producing States", x = "State", y = "Median Values") +
+  geom_text(aes(label = IBU), hjust = -.5, size=3)
+
+ABVPlot
+IBUPlot
+```
+
+###States Producing Beer with Maximum IBU and ABV Measurements
+```{r Max Values}
+#State with highest ABV and IBU values
+maxIBUs <- aggregate(Beer_and_Brewery$IBU~State,data = Beer_and_Brewery,max)
+maxABV <- aggregate(Beer_and_Brewery$ABV~State,data = Beer_and_Brewery,max)
+
+head(maxIBUs[order(-maxIBUs$`Beer_and_Brewery$IBU`),],5)
+head(maxABV[order(-maxABV$`Beer_and_Brewery$ABV`),],5)
+```
+####Oregon produces beer with the highest level of bitterness at 138 IBUs.
+####Colorado produces beer with the highest alcohol content at 12.8% ABV.  
+  
+###ABV Summary Statistics
+```{r ABV Stats}
+summary(Beer_and_Brewery$ABV)
+```
+###IBU Summary Statistics
+```{r IBU Stats}
+summary(Beer_and_Brewery$IBU)
+```
+
+###Relationship Between Alcohol Content and Level of Bitterness
+```{r Scatterplot}
+#scatter plot to show the relationship between the bitterness of the beer and its alcoholic content
+ggplot(Beer_and_Brewery, aes(x=ABV, y=IBU)) + geom_point(color="blue", size=1.5, alpha=0.3, pch=16) +
+  theme_bw(base_size=16) + geom_smooth(method = "lm", se = T, color="red")
+
+#Correlation Test
+cor.test(Beer_and_Brewery$ABV,Beer_and_Brewery$IBU, alternative = "two.sided", method = "pearson", conf.level = 0.95)
+#Pearson's r
+cor(Beer_and_Brewery$ABV,Beer_and_Brewery$IBU, use="complete.obs", method = "pearson")
+#Covariance
+cov(Beer_and_Brewery$ABV,Beer_and_Brewery$IBU, use="complete.obs", method = "pearson")
+```
+####There is a strong positive linear relationship between ABV and IBU (r = 0.67, *p* = 2.2e-16 from Pearson's r) . As the alcohol content of beer increases, the level of bitterness in the beer also tends to increase. 
