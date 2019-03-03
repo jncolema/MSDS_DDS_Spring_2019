@@ -863,3 +863,20 @@ cov(Beer_and_Brewery$ABV,Beer_and_Brewery$IBU, use="complete.obs", method = "pea
 ## [1] 0.2363008
 ```
 ####There is a strong positive linear relationship between ABV and IBU (r = 0.67, *p* = 2.2e-16 from Pearson's r) . As the alcohol content of beer increases, the level of bitterness in the beer also tends to increase. 
+
+###Summary
+####Potential Target Markets
+- 10 States housing ~50% of all craft breweries  
+- 10 States producing ~50% of all craft beers  
+
+####Ideal Beer Measurements  
+- ABV: 5.2% - 6.2%  
+- IBV: 19 - 42  
+- ABV and IBU are positively correlated  
+
+####Future Research  
+- Obtain missing IBU values or understand why so many are missing  
+
+###Links
+- The YouTube presentation for this analysis can be found here: https://youtu.be/BKGMBUrEUE4  
+- The GitHub repo for this analysis can be found here: https://github.com/jncolema/MSDS_DDS_Spring_2019/tree/master/Project  
